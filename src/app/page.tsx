@@ -153,6 +153,21 @@ export default function LiveTrackDashboard() {
               });
             }
           }
+        } else {
+          // Initialize first trackpoint metrics for replay mode so they aren't blank on load
+          const startPt = points[0];
+          if (startPt) {
+            setSpeed(startPt.speed || 0);
+            setPeakSpeed(startPt.speed || 0);
+            setHeartRate(startPt.heartRate || 120);
+            setPower(startPt.power || 150);
+            setCadence(startPt.cadence || 80);
+            setDistance(startPt.distance || 0);
+            setElevation(startPt.elevation || 0);
+            setElapsedTime(startPt.elapsedTimeSecs || 0);
+            setCurrentIndex(0);
+            if (markerRef.current) markerRef.current.setLngLat([startPt.lon, startPt.lat]);
+          }
         }
 
         if (fitMapBounds && mapRef.current) {
