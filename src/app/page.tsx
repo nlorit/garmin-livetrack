@@ -52,6 +52,7 @@ export default function LiveTrackDashboard() {
   const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(false);
   const [isLoadingTrack, setIsLoadingTrack] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
 
   // ✅ INITIALISATION ÉVOLUÉE : On démarre par défaut en mode "live" pour forcer l'écoute réseau
   const [mode, setMode] = useState<"live" | "history">("live");
@@ -194,9 +195,61 @@ export default function LiveTrackDashboard() {
     }
   };
 
+  const fetchProfileAndSessionsBackground = async (targetUser: string) => {
+    try {
+      const res = await fetch(`/api/garmin?username=${targetUser}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const active = data.activeSessions || [];
+      const completed = data.completedSessions || [];
+
+      // Check if a live activity has started
+      const hasLiveActivityStarted = active.length > 0 && activeSessions.length === 0;
+      
+      // Check if a live activity has stopped
+      const wasLiveActivityRunning = activeSessions.length > 0;
+      const isLiveActivityStopped = active.length === 0 && wasLiveActivityRunning;
+
+      setActiveSessions(active);
+      setCompletedSessions(completed);
+      if (data.profile) setProfile(data.profile);
+
+      if (hasLiveActivityStarted) {
+        setMode("live");
+        setSelectedSession(active[0]);
+        setInfoMsg("Une activité en direct vient de démarrer ! Mode direct activé.");
+        setTimeout(() => setInfoMsg(null), 8000);
+      } else if (isLiveActivityStopped) {
+        setMode("history");
+        setInfoMsg("L'activité en direct s'est terminée. Replay de la session disponible dans l'historique.");
+        setTimeout(() => setInfoMsg(null), 8000);
+        
+        // Auto-switch to the completed version of the active session
+        const matchingCompleted = completed.find((s: any) => s.sessionId === selectedSession?.sessionId);
+        if (matchingCompleted) {
+          setSelectedSession(matchingCompleted);
+        } else if (completed.length > 0) {
+          setSelectedSession(completed[0]);
+        }
+      }
+    } catch (err) {
+      console.error("Background profile check failed:", err);
+    }
+  };
+
   useEffect(() => {
     fetchProfileAndSessions(username);
   }, [username]);
+
+  // Polling for live activity starts/stops
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (username) {
+        fetchProfileAndSessionsBackground(username);
+      }
+    }, 20000); // Check every 20 seconds
+    return () => clearInterval(interval);
+  }, [username, activeSessions, selectedSession]);
 
   useEffect(() => {
     fetchTrackDataRef.current = fetchTrackData;
@@ -563,6 +616,12 @@ export default function LiveTrackDashboard() {
           {errorMsg && (
             <div className="absolute top-4 left-4 right-4 bg-red-950/80 border border-red-500/30 rounded-xl p-3 z-30 text-xs text-red-200 flex items-center gap-2 backdrop-blur-md">
               <Info className="w-4 h-4 text-red-400 shrink-0" /><span>{errorMsg}</span>
+            </div>
+          )}
+
+          {infoMsg && (
+            <div className="absolute top-4 left-4 right-4 bg-emerald-950/80 border border-emerald-500/30 rounded-xl p-3 z-30 text-xs text-emerald-200 flex items-center gap-2 backdrop-blur-md">
+              <Radio className="w-4 h-4 text-emerald-400 shrink-0 animate-pulse" /><span>{infoMsg}</span>
             </div>
           )}
 
