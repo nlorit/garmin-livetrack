@@ -49,3 +49,52 @@ body {
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.15); }
+  70% { transform: scale(1); }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.2s infinite ease-in-out;
+}
+
+@keyframes neon-glow-cyan {
+  from { box-shadow: 0 0 5px rgba(6, 182, 212, 0.1), 0 0 10px rgba(6, 182, 212, 0.05); }
+  to { box-shadow: 0 0 15px rgba(6, 182, 212, 0.3), 0 0 25px rgba(6, 182, 212, 0.15); }
+}
+
+.glow-cyan {
+  animation: neon-glow-cyan 2s infinite alternate ease-in-out;
+}
+
+@keyframes neon-glow-emerald {
+  from { box-shadow: 0 0 5px rgba(16, 185, 129, 0.1), 0 0 10px rgba(16, 185, 129, 0.05); }
+  to { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3), 0 0 25px rgba(16, 185, 129, 0.15); }
+}
+
+.glow-emerald {
+  animation: neon-glow-emerald 2s infinite alternate ease-in-out;
+}
+
+/* Glassmorphic card styling matching premium homelab UI */
+.neo-card {
+  background: rgba(10, 12, 20, 0.65);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neo-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 12px 40px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+

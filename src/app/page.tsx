@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl";
 import { 
   Play, Pause, RotateCcw, MapPin, Compass, Navigation,
   Heart, Zap, Flame, Award, Crosshair, Activity, Info,
-  Search, RefreshCw, User, Calendar, Radio
+  Search, RefreshCw, User, Calendar, Radio, ChevronLeft, ChevronRight, Menu
 } from "lucide-react";
 
 interface TrackPoint {
@@ -53,6 +53,18 @@ export default function LiveTrackDashboard() {
   const [isLoadingTrack, setIsLoadingTrack] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+
+  // Floating collapsible panels state
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState<boolean>(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState<boolean>(true);
+
+  // Responsive state logic to close panels on mobile initial load
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setIsLeftPanelOpen(false);
+      setIsRightPanelOpen(false);
+    }
+  }, []);
 
   // ✅ INITIALISATION ÉVOLUÉE : On démarre par défaut en mode "live" pour forcer l'écoute réseau
   const [mode, setMode] = useState<"live" | "history">("live");
@@ -475,174 +487,383 @@ export default function LiveTrackDashboard() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#08090d] select-none text-slate-100 font-sans relative">
-      <div className="absolute inset-0 pointer-events-none z-10 bg-radial-gradient from-transparent via-[#08090d]/35 to-[#08090d]" />
-      
-      <header className="flex shrink-0 flex-wrap items-center justify-between px-3 py-2 md:px-6 md:py-4 gap-2 border-b border-white/[0.05] bg-[#08090d]/80 backdrop-blur-md z-20">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500">
-            <Navigation className="w-5 h-5 fill-current rotate-45" />
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#050608] select-none text-slate-200 font-sans relative">
+      {/* 🗺️ BACKGROUND FULL-SCREEN MAP */}
+      <div className="absolute inset-0 z-0 bg-[#06070a]">
+        <div ref={mapContainerRef} className="w-full h-full" />
+      </div>
+
+      {/* Radial glow vignette overlay */}
+      <div className="absolute inset-0 pointer-events-none z-10 bg-gradient-to-t from-[#050608] via-transparent to-transparent opacity-85 md:opacity-40" />
+
+      {/* 🔔 NOTIFICATIONS BANNERS */}
+      {errorMsg && (
+        <div className="absolute top-20 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-md bg-red-950/85 border border-red-500/30 rounded-xl p-3.5 z-50 text-xs text-red-200 flex items-center gap-2.5 backdrop-blur-xl shadow-lg glow-cyan">
+          <Info className="w-4.5 h-4.5 text-red-400 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {infoMsg && (
+        <div className="absolute top-20 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-md bg-emerald-950/85 border border-emerald-500/30 rounded-xl p-3.5 z-50 text-xs text-emerald-200 flex items-center gap-2.5 backdrop-blur-xl shadow-lg glow-emerald">
+          <Radio className="w-4.5 h-4.5 text-emerald-400 shrink-0 animate-pulse" />
+          <span>{infoMsg}</span>
+        </div>
+      )}
+
+      {/* 👑 FLOATING PREMIUM HEADER */}
+      <header className="absolute top-4 left-4 right-4 h-16 neo-card rounded-2xl px-4 flex items-center justify-between gap-4 z-40">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
+            className="p-1.5 rounded-lg hover:bg-white/[0.05] text-slate-400 hover:text-white transition-colors md:hidden"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 shrink-0">
+            <Navigation className="w-4 h-4 fill-current rotate-45" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold tracking-wider uppercase text-slate-200">Garmin LiveTrack</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xs font-bold tracking-wider uppercase text-slate-100 hidden sm:inline-block">Garmin LiveTrack</h1>
               {mode === "live" ? (
-                <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
-                  <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">DIFFUSION EN DIRECT</span>
+                  <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">LIVE</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">
-                  <span className="text-[9px] text-cyan-400 font-bold uppercase tracking-widest">REPLAY HISTORIQUE</span>
+                <div className="flex items-center gap-1 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-full">
+                  <span className="text-[9px] text-cyan-400 font-bold uppercase tracking-widest">REPLAY</span>
                 </div>
               )}
             </div>
-            <p className="text-[11px] text-slate-500">
-              {profile ? `${profile.name} — ${profile.location}` : "Chargement de l'athlète..."}
+            <p className="text-[10px] text-slate-400 truncate max-w-[120px] sm:max-w-none">
+              {profile ? `${profile.name} — ${profile.location}` : "Chargement..."}
             </p>
           </div>
         </div>
 
-        <div className="flex bg-white/[0.02] border border-white/[0.06] rounded-xl p-1 z-20">
+        {/* Mode Selector */}
+        <div className="flex bg-white/[0.03] border border-white/[0.06] rounded-xl p-0.5 shrink-0">
           <button 
             onClick={() => handleModeChange("live")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
-              mode === "live" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "text-slate-500 hover:text-slate-300"
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+              mode === "live" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Radio className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Activité Live</span>
+            <Radio className="w-3 h-3" />
+            <span className="hidden xs:inline">Direct</span>
           </button>
           <button 
             onClick={() => handleModeChange("history")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
-              mode === "history" ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-400" : "text-slate-500 hover:text-slate-300"
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+              mode === "history" ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-400" : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Calendar className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Replay Historique</span>
+            <Calendar className="w-3 h-3" />
+            <span className="hidden xs:inline">Replay</span>
           </button>
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-1.5 gap-2 max-w-xs w-full">
-          <User className="w-3.5 h-3.5 text-slate-500" />
-          <input type="text" value={usernameInput} onChange={(e) => setUsernameInput(e.target.value)} placeholder="Rechercher un utilisateur..." className="bg-transparent border-none text-xs outline-none text-slate-200 placeholder-slate-500 w-full" />
+        {/* User Search Form */}
+        <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center bg-white/[0.03] border border-white/[0.08] rounded-xl px-2.5 py-1.5 gap-2 max-w-xs w-48 focus-within:w-60 transition-all duration-300">
+          <User className="w-3.5 h-3.5 text-slate-400" />
+          <input type="text" value={usernameInput} onChange={(e) => setUsernameInput(e.target.value)} placeholder="Rechercher un athlète..." className="bg-transparent border-none text-xs outline-none text-slate-100 placeholder-slate-500 w-full" />
           <button type="submit" className="text-slate-400 hover:text-white transition-colors"><Search className="w-3.5 h-3.5" /></button>
         </form>
 
+        {/* Right side controls */}
         <div className="flex items-center gap-2">
-          <button onClick={() => setIsDroneMode(!isDroneMode)} className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ${isDroneMode ? "bg-cyan-500/10 border-cyan-400/30 text-cyan-400" : "bg-white/[0.02] border-white/[0.06] text-slate-400"}`}>
-            <Compass className={`w-3.5 h-3.5 ${isDroneMode ? "animate-spin" : ""}`} style={{ animationDuration: '6s' }} />
-            <span>Vue Drone</span>
+          <button onClick={() => setIsDroneMode(!isDroneMode)} className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${isDroneMode ? "bg-cyan-500/10 border-cyan-400/30 text-cyan-400" : "bg-white/[0.02] border-white/[0.06] text-slate-400"}`}>
+            <Compass className={`w-3.5 h-3.5 ${isDroneMode ? "animate-spin" : ""}`} style={{ animationDuration: '8s' }} />
+            <span className="hidden sm:inline">Drone</span>
           </button>
-          {mode === "history" && (
-            <div className="flex items-center bg-white/[0.02] border border-white/[0.06] rounded-xl p-1">
-              <button onClick={() => setIsPlaying(!isPlaying)} disabled={trackPoints.length === 0} className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white"><Pause className="w-4 h-4" /></button>
-              <button onClick={handleReset} disabled={trackPoints.length === 0} className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white"><RotateCcw className="w-4 h-4" /></button>
-            </div>
-          )}
+          
+          <button 
+            onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+            className="p-1.5 rounded-lg hover:bg-white/[0.05] text-slate-400 hover:text-white transition-colors md:hidden"
+          >
+            <Activity className="w-5 h-5 text-cyan-400" />
+          </button>
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col md:flex-row min-h-0 w-full relative z-10">
-        <div className="w-full md:w-80 shrink-0 p-3 md:p-5 flex flex-row md:flex-col gap-3 md:gap-4 overflow-x-auto md:overflow-y-auto border-b md:border-b-0 md:border-r border-white/[0.05] bg-[#090b0f]/90 z-20 max-h-48 md:max-h-none">
-          
-          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-4 relative overflow-hidden shrink-0 w-64 md:w-auto">
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5 mb-2"><Radio className="w-3.5 h-3.5 text-emerald-400" />En direct</span>
-              {isLoadingProfile ? (
-                <div className="text-xs text-slate-400"><RefreshCw className="w-3 h-3 animate-spin text-cyan-400" /><span>Chargement...</span></div>
-              ) : activeSessions.length === 0 && mode !== "live" ? (
-                <div className="text-[11px] text-slate-500 italic">Aucune activité live.</div>
+      {/* 🚪 LEFT FLOATING PANEL: ATHLETE PROFILE & HISTORY */}
+      <div className={`absolute top-24 bottom-4 left-4 w-80 z-30 transition-transform duration-500 ease-in-out ${isLeftPanelOpen ? "translate-x-0" : "-translate-x-[340px]"} pointer-events-none`}>
+        <div className="w-full h-full neo-card rounded-2xl p-4 flex flex-col gap-4 overflow-y-auto pointer-events-auto">
+          {/* Athlete Profile Summary */}
+          {profile && (
+            <div className="flex items-center gap-3 pb-3 border-b border-white/[0.04]">
+              {profile.profileImageMedium ? (
+                <img src={profile.profileImageMedium} alt={profile.name} className="w-10 h-10 rounded-full border border-white/[0.08] shadow-inner" />
               ) : (
-                <div className="flex flex-col gap-1">
-                  {/* Mode Écoute Forcée Actif pour intercepter le flux XHR de Garmin */}
-                  <button onClick={() => handleModeChange("live")} className={`flex flex-col text-left p-2.5 rounded-xl border text-xs ${mode === "live" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-md animate-pulse" : "bg-white/[0.01] border-white/[0.05] text-slate-400"}`}>
-                    <span className="font-semibold truncate">📡 Écoute du flux Live en cours...</span>
-                  </button>
-                </div>
+                <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/[0.08] flex items-center justify-center text-slate-300 font-bold uppercase">{profile.name.substring(0, 2)}</div>
               )}
+              <div>
+                <h2 className="text-xs font-bold text-slate-100">{profile.name}</h2>
+                <p className="text-[10px] text-slate-500">{profile.location || "Athlète Garmin"}</p>
+              </div>
             </div>
+          )}
 
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5 mb-2"><Calendar className="w-3.5 h-3.5 text-cyan-400" />Précédentes sorties</span>
-              {isLoadingProfile ? (
-                <div className="text-xs text-slate-400"><RefreshCw className="w-3 h-3 animate-spin text-cyan-400" /><span>Chargement...</span></div>
-              ) : completedSessions.length === 0 ? (
-                <div className="text-[11px] text-slate-500 italic">Aucun historique public.</div>
-              ) : (
-                <div className="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1">
-                  {completedSessions.map((session) => (
-                    <button key={session.sessionId} onClick={() => handleSessionSelect(session, "history")} className={`flex flex-col text-left p-2 rounded-xl border text-xs transition-all ${selectedSession?.sessionId === session.sessionId && mode === "history" ? "bg-cyan-500/10 border-cyan-400/30 text-slate-100" : "bg-white/[0.01] border-white/[0.05] text-slate-400"}`}>
-                      <span className="font-semibold text-slate-200 truncate">{session.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden shrink-0 w-64 md:w-auto">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-cyan-400" />{mode === "live" ? "Télémétrie temps réel" : "Télémétrie du replay"}</span>
-            {isLoadingTrack ? (
-              <div className="flex flex-col items-center justify-center py-8 gap-3"><RefreshCw className="w-6 h-6 animate-spin text-cyan-400" /></div>
-            ) : trackPoints.length === 0 ? <div className="text-xs text-slate-500 text-center py-6">En attente de transmission GPS...</div> : (
-              <>
-                <div className="flex flex-col items-center justify-center py-2 border-b border-white/[0.03]"><span className="font-mono text-5xl font-semibold tracking-tighter text-slate-100 tabular-nums">{speed.toFixed(1)}</span><span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Vitesse km/h</span></div>
-                <div className="grid grid-cols-2 gap-4 pt-1">
-                  <div className="flex flex-col"><span className="text-[9px] uppercase text-slate-500 font-semibold flex items-center gap-1"><Heart className="w-3 h-3 text-red-500 fill-current" />Cardio</span><span className="font-mono text-lg font-medium text-slate-200 mt-0.5 tabular-nums">{heartRate} bpm</span></div>
-                  <div className="flex flex-col"><span className="text-[9px] uppercase text-slate-500 font-semibold flex items-center gap-1"><Zap className="w-3 h-3 text-yellow-500 fill-current" />Puissance</span><span className="font-mono text-lg font-medium text-slate-200 mt-0.5 tabular-nums">{power} W</span></div>
-                  <div className="flex flex-col"><span className="text-[9px] uppercase text-slate-500 font-semibold flex items-center gap-1"><Flame className="w-3 h-3 text-orange-500 fill-current" />Calories</span><span className="font-mono text-lg font-medium text-slate-200 mt-0.5 tabular-nums">{Math.floor(calories)} kcal</span></div>
-                  <div className="flex flex-col"><span className="text-[9px] uppercase text-slate-500 font-semibold flex items-center gap-1"><Compass className="w-3 h-3 text-purple-500" />Cadence</span><span className="font-mono text-lg font-medium text-slate-200 mt-0.5 tabular-nums">{cadence} rpm</span></div>
-                </div>
-              </>
+          {/* Active Live Session Box */}
+          <div>
+            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5 mb-2"><Radio className="w-3.5 h-3.5 text-emerald-400" />En direct</span>
+            {isLoadingProfile ? (
+              <div className="text-xs text-slate-400 flex items-center gap-2"><RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" /><span>Interrogation...</span></div>
+            ) : activeSessions.length === 0 && mode !== "live" ? (
+              <div className="text-[10px] text-slate-500 italic px-2">Aucun flux Garmin Live détecté.</div>
+            ) : (
+              <button 
+                onClick={() => handleModeChange("live")} 
+                className={`w-full text-left p-3 rounded-xl border text-xs transition-all duration-300 ${mode === "live" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 glow-emerald" : "bg-white/[0.01] border-white/[0.04] text-slate-400"}`}
+              >
+                <span className="font-bold flex items-center gap-2 truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  📡 Écoute active du flux Live...
+                </span>
+              </button>
             )}
           </div>
 
-          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3 shrink-0 w-64 md:w-auto">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-cyan-400" />Progression</span>
+          {/* History sessions list */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5 mb-2 shrink-0"><Calendar className="w-3.5 h-3.5 text-cyan-400" />Activités récentes</span>
+            {isLoadingProfile ? (
+              <div className="text-xs text-slate-400 flex items-center gap-2 py-4"><RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" /><span>Chargement de l'historique...</span></div>
+            ) : completedSessions.length === 0 ? (
+              <div className="text-[10px] text-slate-500 italic px-2">Aucun historique disponible.</div>
+            ) : (
+              <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-1.5">
+                {completedSessions.map((session) => {
+                  const isSelected = selectedSession?.sessionId === session.sessionId && mode === "history";
+                  return (
+                    <button 
+                      key={session.sessionId} 
+                      onClick={() => handleSessionSelect(session, "history")} 
+                      className={`flex flex-col text-left p-2.5 rounded-xl border text-[11px] transition-all duration-300 hover:translate-x-1 ${isSelected ? "bg-cyan-500/10 border-cyan-400/30 text-slate-100 shadow-md" : "bg-white/[0.01] border-white/[0.04] text-slate-400"}`}
+                    >
+                      <span className="font-bold text-slate-200 truncate">{session.name}</span>
+                      <div className="flex items-center gap-2 mt-1 text-[9px] text-slate-500">
+                        <span>{session.distance.toFixed(1)} km</span>
+                        <span>•</span>
+                        <span>{session.startDate ? new Date(session.startDate).toLocaleDateString() : ""}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 🚪 RIGHT FLOATING PANEL: REALTIME TELEMETRY WIDGETS */}
+      <div className={`absolute top-24 bottom-4 right-4 w-80 z-30 transition-transform duration-500 ease-in-out ${isRightPanelOpen ? "translate-x-0" : "translate-x-[340px]"} pointer-events-none`}>
+        <div className="w-full h-full neo-card rounded-2xl p-4 flex flex-col gap-4 overflow-y-auto pointer-events-auto">
+          
+          {/* Dial Speedometer circular gauge */}
+          <div className="flex flex-col items-center justify-center p-2 bg-white/[0.01] border border-white/[0.03] rounded-2xl relative overflow-hidden">
+            {isLoadingTrack ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-3"><RefreshCw className="w-7 h-7 animate-spin text-cyan-400" /></div>
+            ) : trackPoints.length === 0 ? (
+              <div className="text-[10px] text-slate-500 text-center py-10">En attente de transmission GPS...</div>
+            ) : (
+              <div className="relative w-40 h-40 flex items-center justify-center">
+                {/* SVG circular speedometer indicator */}
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle cx="80" cy="80" r="60" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="6" />
+                  <circle 
+                    cx="80" 
+                    cy="80" 
+                    r="60" 
+                    fill="transparent" 
+                    stroke="url(#speed-gradient)" 
+                    strokeWidth="6" 
+                    strokeDasharray="377" 
+                    strokeDashoffset={377 - (377 * Math.min(speed, 65)) / 65} 
+                    strokeLinecap="round" 
+                    className="transition-all duration-500 ease-out" 
+                  />
+                  <defs>
+                    <linearGradient id="speed-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#06b6d4" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                {/* Speed readout */}
+                <div className="absolute flex flex-col items-center justify-center">
+                  <span className="font-mono text-4xl font-bold tracking-tight text-slate-100 tabular-nums">{speed.toFixed(1)}</span>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Speed km/h</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Core metrics cards */}
+          {trackPoints.length > 0 && !isLoadingTrack && (
+            <div className="flex flex-col gap-3">
+              {/* Cardio Card with Beating animation & background trace */}
+              <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl relative overflow-hidden group">
+                <div className="absolute bottom-0 left-0 right-0 h-8 opacity-20 pointer-events-none">
+                  {/* ECG trace visual indicator */}
+                  <svg className="w-full h-full text-rose-500" viewBox="0 0 100 20" preserveAspectRatio="none">
+                    <path d="M0,10 L30,10 L33,2 L36,18 L39,10 L43,10 L45,2 L48,18 L51,10 L100,10" fill="none" stroke="currentColor" strokeWidth="1.2" className="animate-pulse" />
+                  </svg>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase text-slate-500 font-bold tracking-wider flex items-center gap-1.5">
+                      <Heart className="w-3.5 h-3.5 text-rose-500 fill-current animate-heartbeat" />
+                      Cardio
+                    </span>
+                    <span className="font-mono text-xl font-bold text-slate-200 mt-1 block tabular-nums">{heartRate} <span className="text-[10px] font-normal text-slate-500">bpm</span></span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Power Card with glowing neon gauge */}
+              <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl">
+                <span className="text-[9px] uppercase text-slate-500 font-bold tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-yellow-500 fill-current" />
+                  Puissance
+                </span>
+                <span className="font-mono text-xl font-bold text-slate-200 mt-1 block tabular-nums">{power} <span className="text-[10px] font-normal text-slate-500">W</span></span>
+                {/* Glowing power bar */}
+                <div className="w-full h-1 bg-white/[0.04] rounded-full overflow-hidden mt-2">
+                  <div className="h-full bg-gradient-to-r from-yellow-500 to-amber-400 transition-all duration-500 ease-out" style={{ width: `${Math.min((power / 400) * 100, 100)}%` }} />
+                </div>
+              </div>
+
+              {/* Cadence Card with Dynamic rotating crank visual */}
+              <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] uppercase text-slate-500 font-bold tracking-wider flex items-center gap-1.5">
+                    <Compass className="w-3.5 h-3.5 text-purple-500" />
+                    Cadence
+                  </span>
+                  <span className="font-mono text-xl font-bold text-slate-200 mt-1 block tabular-nums">{cadence} <span className="text-[10px] font-normal text-slate-500">rpm</span></span>
+                </div>
+                {/* Rotating pedal/crank dial */}
+                <div className="w-10 h-10 rounded-full border border-white/[0.05] flex items-center justify-center bg-white/[0.01]">
+                  <svg className="w-6 h-6 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ animation: `spin ${60 / Math.max(cadence || 1, 12)}s linear infinite` }}>
+                    <circle cx="12" cy="12" r="9" strokeDasharray="3 3" className="opacity-40" />
+                    <line x1="12" y1="12" x2="12" y2="4" strokeLinecap="round" />
+                    <circle cx="12" cy="4" r="2" fill="currentColor" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Progression card details */}
+          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3 mt-auto">
+            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-cyan-400" />Progression</span>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between text-xs"><span className="text-slate-400">Distance</span><span className="font-mono font-medium text-slate-200">{distance.toFixed(2)} km</span></div>
               <div className="flex justify-between text-xs"><span className="text-slate-400">Altitude</span><span className="font-mono font-medium text-slate-200">{elevation.toFixed(0)} m</span></div>
               <div className="flex justify-between text-xs"><span className="text-slate-400">Temps</span><span className="font-mono font-medium text-slate-200">{formatTime(elapsedTime)}</span></div>
-              <div className="w-full h-1 bg-white/[0.04] rounded-full overflow-hidden mt-2">
-                <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-300 transition-all duration-1000" style={{ width: `${trackPoints.length > 0 ? (currentIndex / trackPoints.length) * 100 : 0}%` }} />
+              
+              {/* Timeline slider progress */}
+              <div className="w-full h-1 bg-white/[0.04] rounded-full overflow-hidden mt-2 relative">
+                <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-400 transition-all duration-1000" style={{ width: `${trackPoints.length > 0 ? (currentIndex / trackPoints.length) * 100 : 0}%` }} />
               </div>
             </div>
           </div>
         </div>
-
-        <div className="flex-1 h-full min-h-[50vh] md:min-h-0 relative bg-[#06070a]">
-          {errorMsg && (
-            <div className="absolute top-4 left-4 right-4 bg-red-950/80 border border-red-500/30 rounded-xl p-3 z-30 text-xs text-red-200 flex items-center gap-2 backdrop-blur-md">
-              <Info className="w-4 h-4 text-red-400 shrink-0" /><span>{errorMsg}</span>
-            </div>
-          )}
-
-          {infoMsg && (
-            <div className="absolute top-4 left-4 right-4 bg-emerald-950/80 border border-emerald-500/30 rounded-xl p-3 z-30 text-xs text-emerald-200 flex items-center gap-2 backdrop-blur-md">
-              <Radio className="w-4 h-4 text-emerald-400 shrink-0 animate-pulse" /><span>{infoMsg}</span>
-            </div>
-          )}
-
-          <div ref={mapContainerRef} className="w-full h-full" />
-
-          <button 
-            onClick={() => {
-              userInteractingRef.current = false;
-              if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-              if (mapRef.current && trackPoints.length > 0) {
-                const currentPt = trackPoints[currentIndex];
-                mapRef.current.flyTo({ center: [currentPt.lon, currentPt.lat], zoom: 14.5, pitch: 52, bearing: mapRef.current.getBearing(), essential: true });
-              }
-            }}
-            disabled={trackPoints.length === 0}
-            className={`absolute bottom-14 right-2 md:bottom-6 md:right-6 flex items-center justify-center w-11 h-11 rounded-xl glass-panel transition-colors z-20 ${userInteractingRef.current ? "text-amber-400 animate-pulse" : "text-slate-300"}`}
-          >
-            <Crosshair className="w-5 h-5" />
-          </button>
-        </div>
       </div>
+
+      {/* 🛠️ CENTRAL BOTTOM MAP CONTROLS & TIMELINE CONTROLS (Floating) */}
+      <div className="absolute bottom-4 left-4 right-4 md:left-80 md:right-80 h-14 neo-card rounded-2xl px-4 flex items-center justify-between z-30 pointer-events-auto">
+        {mode === "history" ? (
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => setIsPlaying(!isPlaying)} 
+              disabled={trackPoints.length === 0} 
+              className="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-white/[0.05] text-slate-300 hover:text-white transition-colors"
+            >
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
+            </button>
+            <button 
+              onClick={handleReset} 
+              disabled={trackPoints.length === 0} 
+              className="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-white/[0.05] text-slate-300 hover:text-white transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">Direct Actif</span>
+          </div>
+        )}
+
+        {/* Timeline slider pointer */}
+        {trackPoints.length > 0 && (
+          <div className="flex-1 mx-6 flex items-center gap-3">
+            <span className="text-[10px] font-mono text-slate-500 tabular-nums">{formatTime(elapsedTime)}</span>
+            <input 
+              type="range" 
+              min="0" 
+              max={trackPoints.length - 1} 
+              value={currentIndex} 
+              onChange={(e) => {
+                const idx = parseInt(e.target.value);
+                setCurrentIndex(idx);
+                const pt = trackPoints[idx];
+                if (pt) {
+                  setSpeed(pt.speed || 0);
+                  setHeartRate(pt.heartRate || 120);
+                  setPower(pt.power || 150);
+                  setCadence(pt.cadence || 80);
+                  setDistance(pt.distance || 0);
+                  setElevation(pt.elevation || 0);
+                  setElapsedTime(pt.elapsedTimeSecs || idx);
+                  if (markerRef.current) markerRef.current.setLngLat([pt.lon, pt.lat]);
+                }
+              }}
+              className="w-full h-1 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none"
+            />
+            <span className="text-[10px] font-mono text-slate-500 tabular-nums">
+              {trackPoints.length > 0 ? formatTime(trackPoints[trackPoints.length - 1].elapsedTimeSecs || trackPoints.length) : "00:00:00"}
+            </span>
+          </div>
+        )}
+
+        {/* Focus center map marker */}
+        <button 
+          onClick={() => {
+            userInteractingRef.current = false;
+            if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+            if (mapRef.current && trackPoints.length > 0) {
+              const currentPt = trackPoints[currentIndex];
+              mapRef.current.flyTo({ center: [currentPt.lon, currentPt.lat], zoom: 14.5, pitch: 52, bearing: mapRef.current.getBearing(), essential: true });
+            }
+          }}
+          disabled={trackPoints.length === 0}
+          className={`flex items-center justify-center w-9 h-9 rounded-xl hover:bg-white/[0.05] transition-colors ${userInteractingRef.current ? "text-amber-400 animate-pulse" : "text-slate-300 hover:text-white"}`}
+        >
+          <Crosshair className="w-4.5 h-4.5" />
+        </button>
+      </div>
+
+      {/* 🚀 COLLAPSIBLE TOGGLE SIDE BUTTONS */}
+      <button 
+        onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
+        className={`absolute left-0 top-1/2 -translate-y-1/2 w-6 h-14 neo-card rounded-r-xl hidden md:flex items-center justify-center z-40 text-slate-400 hover:text-white transition-all ${isLeftPanelOpen ? "left-80" : "left-0"}`}
+      >
+        {isLeftPanelOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+      </button>
+
+      <button 
+        onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+        className={`absolute right-0 top-1/2 -translate-y-1/2 w-6 h-14 neo-card rounded-l-xl hidden md:flex items-center justify-center z-40 text-slate-400 hover:text-white transition-all ${isRightPanelOpen ? "right-80" : "right-0"}`}
+      >
+        {isRightPanelOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+      </button>
     </div>
   );
 }
