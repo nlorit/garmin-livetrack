@@ -94,6 +94,7 @@ export default function LiveTrackDashboard() {
     setDistance(0);
     setElevation(0);
     setElapsedTime(0);
+    setIsPlaying(false);
   };
 
   const animFrameRef = useRef<number | null>(null);
@@ -163,6 +164,14 @@ export default function LiveTrackDashboard() {
                 type: "Feature",
                 properties: {},
                 geometry: { type: "LineString", coordinates: points.map(p => [p.lon, p.lat]) }
+              });
+            }
+            if (isDroneMode && !userInteractingRef.current) {
+              mapRef.current.easeTo({
+                center: [currentPt.lon, currentPt.lat],
+                zoom: 14.5,
+                pitch: 52,
+                duration: 1000
               });
             }
           }
