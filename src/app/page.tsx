@@ -876,8 +876,10 @@ export default function LiveTrackDashboard() {
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">Direct Actif</span>
+            <span className={`w-2 h-2 rounded-full ${activeSessions.length > 0 ? "bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" : "bg-slate-500 animate-pulse"}`} />
+            <span className={`text-[10px] font-bold tracking-wider uppercase ${activeSessions.length > 0 ? "text-emerald-400" : "text-slate-500"}`}>
+              {activeSessions.length > 0 ? "Direct Actif" : "Écoute Live"}
+            </span>
           </div>
         )}
 
