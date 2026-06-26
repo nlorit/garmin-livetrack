@@ -41,12 +41,14 @@ body {
 .glass-panel {
   background: rgba(8, 9, 13, 0.55);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .glass-panel-heavy {
   background: rgba(4, 5, 8, 0.85);
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -84,6 +86,7 @@ body {
 .neo-card {
   background: rgba(10, 12, 20, 0.65);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 
     0 10px 30px -10px rgba(0, 0, 0, 0.5),
@@ -96,5 +99,23 @@ body {
   box-shadow: 
     0 12px 40px -10px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile optimizations to make it look like a native application */
+@media (max-width: 768px) {
+  .neo-card {
+    background: rgba(10, 12, 20, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+  
+  .glass-panel {
+    background: rgba(8, 9, 13, 0.94);
+  }
+
+  .glass-panel-heavy {
+    background: rgba(4, 5, 8, 0.97);
+  }
 }
 

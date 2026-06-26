@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   title: "Garmin LiveTrack — Tableau de bord",
   description: "Tableau de bord 3D de télémétrie GPS et suivi en temps réel.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

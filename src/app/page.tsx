@@ -625,7 +625,7 @@ export default function LiveTrackDashboard() {
       </header>
 
       {/* 🚪 LEFT FLOATING PANEL: ATHLETE PROFILE & HISTORY */}
-      <div className={`absolute top-24 bottom-4 left-4 w-80 z-30 transition-transform duration-500 ease-in-out ${isLeftPanelOpen ? "translate-x-0" : "-translate-x-[340px]"} pointer-events-none`}>
+      <div className={`absolute top-24 bottom-4 left-4 right-4 md:right-auto md:w-80 z-30 transition-transform duration-500 ease-in-out ${isLeftPanelOpen ? "translate-x-0" : "-translate-x-[120%]"} pointer-events-none`}>
         <div className="w-full h-full neo-card rounded-2xl p-4 flex flex-col gap-4 overflow-y-auto pointer-events-auto">
           {/* Athlete Profile Summary */}
           {profile && (
@@ -695,7 +695,7 @@ export default function LiveTrackDashboard() {
       </div>
 
       {/* 🚪 RIGHT FLOATING PANEL: REALTIME TELEMETRY WIDGETS */}
-      <div className={`absolute top-24 bottom-4 right-4 w-80 z-30 transition-transform duration-500 ease-in-out ${isRightPanelOpen ? "translate-x-0" : "translate-x-[340px]"} pointer-events-none`}>
+      <div className={`absolute top-24 bottom-4 left-4 right-4 md:left-auto md:w-80 z-30 transition-transform duration-500 ease-in-out ${isRightPanelOpen ? "translate-x-0" : "translate-x-[120%]"} pointer-events-none`}>
         <div className="w-full h-full neo-card rounded-2xl p-4 flex flex-col gap-4 overflow-y-auto pointer-events-auto">
           
           {/* Dial Speedometer circular gauge */}
