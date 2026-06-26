@@ -79,43 +79,60 @@ export async function GET(request: NextRequest) {
 
   try {
     if (sessionId && token) {
-      // 🛰️ DIRECT TELEMETRY API FETCH (Works for both Live and History sessions)
-      const apiUrl = `https://livetrack.garmin.com/api/sessions/${sessionId}?token=${token}`;
+      // 🛰️ UNIFIED TELEMETRY FETCH VIA SCRAPING (Works for both Live and History sessions)
+      const targetUrl = `https://livetrack.garmin.com/session/${sessionId}/token/${token}`;
 
-      const response = await fetch(apiUrl, {
-        headers: {
-          ...headers,
-          "Referer": `https://livetrack.garmin.com/session/${sessionId}/token/${token}`,
-          "Origin": "https://livetrack.garmin.com",
-        },
-      });
+      const response = await fetch(targetUrl, { headers });
 
       if (!response.ok) {
-        return jsonResponse({ error: `Garmin Live API returned ${response.status}` }, response.status);
+        return jsonResponse({ error: `Garmin Live session returned status ${response.status}` }, response.status);
       }
 
-      const data = await response.json();
+      const html = await response.text();
+      const mergedData = extractNextData(html);
+      const queries = findAllQueries(mergedData);
 
-      // Extract points/trackPoints from the session response
+      let sessionInfo = null;
       let rawPoints: any[] = [];
-      if (data && Array.isArray(data.trackPoints)) {
-        rawPoints = data.trackPoints;
-      } else if (data && Array.isArray(data.points)) {
-        rawPoints = data.points;
-      } else if (Array.isArray(data)) {
-        rawPoints = data;
-      } else if (data && data.pages) {
-        for (const page of data.pages) {
-          if (page.trackPoints) rawPoints = rawPoints.concat(page.trackPoints);
-          else if (page.points) rawPoints = rawPoints.concat(page.points);
+
+      for (const q of queries) {
+        const key = q.getqueryKey || q.queryKey || [];
+        const state = q.state || {};
+        const qdata = state.data || {};
+
+        if (key.length >= 3 && key[0] === "session" && key[1] === sessionId && key[2] === token) {
+          if (key.length === 3) {
+            sessionInfo = qdata;
+          } else if (key[3] === "track-points" || key[3] === "points") {
+            const pages = qdata.pages || [];
+            for (const page of pages) {
+              if (page.trackPoints) {
+                rawPoints = rawPoints.concat(page.trackPoints);
+              } else if (page.points) {
+                rawPoints = rawPoints.concat(page.points);
+              }
+            }
+          }
         }
       }
 
-      const sessionInfo = {
-        sessionName: data.sessionName,
-        sessionType: data.sessionType,
-        viewable: data.viewable,
-      };
+      // If we couldn't find points in paginated format, check if they are in a flat array inside one of the queries
+      if (rawPoints.length === 0) {
+        for (const q of queries) {
+          const state = q.state || {};
+          const qdata = state.data || {};
+          if (Array.isArray(qdata)) {
+            rawPoints = qdata;
+            break;
+          } else if (qdata && Array.isArray(qdata.trackPoints)) {
+            rawPoints = qdata.trackPoints;
+            break;
+          } else if (qdata && Array.isArray(qdata.points)) {
+            rawPoints = qdata.points;
+            break;
+          }
+        }
+      }
 
       return jsonResponse({
         sessionInfo,
