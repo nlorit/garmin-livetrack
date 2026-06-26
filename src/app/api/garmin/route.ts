@@ -225,21 +225,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // If active session not found in queries but found embedded in HTML body as a link
-      if (activeSessions.length === 0) {
-        const embeddedLinkMatch = html.match(/(?:https?:\/\/[^"'\\\s<>]+)?\/session\/([A-Za-z0-9-]+)\/token\/([A-Za-z0-9]+)/);
-        if (embeddedLinkMatch) {
-          activeSessions.push({
-            sessionId: embeddedLinkMatch[1],
-            token: embeddedLinkMatch[2],
-            name: "Active Session",
-            startDate: new Date().toISOString(),
-            distance: 0,
-            duration: "00:00:00",
-            maxElevation: 0,
-          });
-        }
-      }
+
 
       // Fallback profile if query parsing failed
       if (!profile) {

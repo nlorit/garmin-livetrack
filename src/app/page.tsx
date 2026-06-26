@@ -883,8 +883,8 @@ export default function LiveTrackDashboard() {
 
         {/* Timeline slider pointer */}
         {trackPoints.length > 0 && (
-          <div className="flex-1 mx-6 flex items-center gap-3">
-            <span className="text-[10px] font-mono text-slate-500 tabular-nums">{formatTime(elapsedTime)}</span>
+          <div className="flex-1 mx-1 sm:mx-6 flex items-center gap-1.5 sm:gap-3 min-w-0">
+            <span className="text-[9px] sm:text-[10px] font-mono text-slate-500 tabular-nums shrink-0">{formatTime(elapsedTime)}</span>
             <input 
               type="range" 
               min="0" 
@@ -905,9 +905,9 @@ export default function LiveTrackDashboard() {
                   if (markerRef.current) markerRef.current.setLngLat([pt.lon, pt.lat]);
                 }
               }}
-              className="w-full h-1 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none"
+              className="flex-1 min-w-[50px] sm:min-w-[100px] h-1 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none"
             />
-            <span className="text-[10px] font-mono text-slate-500 tabular-nums">
+            <span className="text-[9px] sm:text-[10px] font-mono text-slate-500 tabular-nums shrink-0">
               {trackPoints.length > 0 ? formatTime(trackPoints[trackPoints.length - 1].elapsedTimeSecs || trackPoints.length) : "00:00:00"}
             </span>
           </div>
