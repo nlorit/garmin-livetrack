@@ -563,33 +563,7 @@ export default function LiveTrackDashboard() {
         </div>
       )}
 
-      {activeSessions.length > 0 && (
-        <div className="absolute top-20 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-md bg-emerald-600/90 border border-emerald-400/40 rounded-xl p-3 z-50 text-xs text-white flex items-center justify-between gap-3 backdrop-blur-xl shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all">
-          <div className="flex items-center gap-2.5">
-            <div className="relative flex h-3 w-3 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold uppercase tracking-widest text-[9px] text-emerald-100">Activité en direct</span>
-              <span className="text-[11px] font-medium text-white truncate max-w-[200px] sm:max-w-[240px]">{activeSessions[0].name || "Session active"}</span>
-            </div>
-          </div>
-          {mode !== "live" && (
-            <button
-              onClick={() => {
-                clearTelemetryState();
-                setMode("live");
-                setSelectedSession(activeSessions[0]);
-                fetchTrackData(true, "live", activeSessions[0]);
-              }}
-              className="bg-white text-emerald-700 font-bold px-2.5 py-1 rounded-lg text-[9px] hover:bg-emerald-50 transition-colors uppercase shrink-0 shadow-sm"
-            >
-              Rejoindre
-            </button>
-          )}
-        </div>
-      )}
+
 
       {/* 👑 FLOATING PREMIUM HEADER */}
       <header className="absolute top-4 left-4 right-4 h-16 neo-card rounded-2xl px-4 flex items-center justify-between gap-4 z-40">
