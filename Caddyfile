@@ -1,0 +1,4 @@
+# Replace with your domain
+your-domain.com {
+    reverse_proxy garmin-livetrack:3000
+}
