@@ -131,7 +131,9 @@ export default function LiveTrackDashboard() {
 
     if (!targetSessionId || !targetToken) return;
 
-    setIsLoadingTrack(true);
+    if (targetSession !== undefined || trackPoints.length === 0) {
+      setIsLoadingTrack(true);
+    }
     const currentMode = forcedMode || mode;
     try {
       const res = await fetch(`/api/garmin?sessionId=${targetSessionId}&token=${targetToken}&mode=${currentMode}`);
@@ -317,6 +319,7 @@ export default function LiveTrackDashboard() {
 
   useEffect(() => {
     if (!selectedSession) return;
+    setTrackPoints([]);
 
     if (mapRef.current) {
       const emptyGeoJSON = { type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: [] as number[][] } };
