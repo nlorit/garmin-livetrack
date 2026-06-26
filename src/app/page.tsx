@@ -813,6 +813,33 @@ export default function LiveTrackDashboard() {
         </div>
       </div>
 
+      {/* 📱 MOBILE BOTTOM METRICS BAR (Visible only on phone/tablet, hidden on desktop) */}
+      {trackPoints.length > 0 && !isLoadingTrack && (
+        <div className="absolute bottom-20 left-4 right-4 md:hidden neo-card rounded-2xl p-3 z-30 pointer-events-auto flex flex-col gap-2">
+          <div className="grid grid-cols-4 gap-1 divide-x divide-white/[0.04] text-center">
+            <div className="flex flex-col justify-center">
+              <span className="text-[8px] uppercase text-slate-500 font-bold tracking-wider">Allure</span>
+              <span className="font-mono text-sm font-extrabold text-cyan-400 tabular-nums">{formatPace(speed)}</span>
+            </div>
+            <div className="flex flex-col justify-center pl-1">
+              <span className="text-[8px] uppercase text-slate-500 font-bold tracking-wider">Cardio</span>
+              <span className="font-mono text-sm font-extrabold text-rose-500 tabular-nums flex items-center justify-center gap-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                {heartRate}
+              </span>
+            </div>
+            <div className="flex flex-col justify-center pl-1">
+              <span className="text-[8px] uppercase text-slate-500 font-bold tracking-wider">Distance</span>
+              <span className="font-mono text-sm font-extrabold text-slate-200 tabular-nums">{distance.toFixed(1)} <span className="text-[7px] font-normal text-slate-500">km</span></span>
+            </div>
+            <div className="flex flex-col justify-center pl-1">
+              <span className="text-[8px] uppercase text-slate-500 font-bold tracking-wider">Cadence</span>
+              <span className="font-mono text-sm font-extrabold text-purple-400 tabular-nums">{cadence < 120 ? cadence * 2 : cadence} <span className="text-[7px] font-normal text-slate-500">spm</span></span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 🛠️ CENTRAL BOTTOM MAP CONTROLS & TIMELINE CONTROLS (Floating) */}
       <div className="absolute bottom-4 left-4 right-4 md:left-80 md:right-80 h-14 neo-card rounded-2xl px-4 flex items-center justify-between z-30 pointer-events-auto">
         {mode === "history" ? (
