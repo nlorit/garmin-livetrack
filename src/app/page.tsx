@@ -547,7 +547,7 @@ export default function LiveTrackDashboard() {
       <div className="flex-1 flex flex-col md:flex-row min-h-0 w-full relative z-10">
         <div className="w-full md:w-80 shrink-0 p-3 md:p-5 flex flex-row md:flex-col gap-3 md:gap-4 overflow-x-auto md:overflow-y-auto border-b md:border-b-0 md:border-r border-white/[0.05] bg-[#090b0f]/90 z-20 max-h-48 md:max-h-none">
           
-          <div className="glass-panel rounded-2xl p-4 hidden md:flex flex-col gap-4 relative overflow-hidden">
+          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-4 relative overflow-hidden shrink-0 w-64 md:w-auto">
             <div>
               <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5 mb-2"><Radio className="w-3.5 h-3.5 text-emerald-400" />En direct</span>
               {isLoadingProfile ? (
@@ -582,7 +582,7 @@ export default function LiveTrackDashboard() {
             </div>
           </div>
 
-          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
+          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden shrink-0 w-64 md:w-auto">
             <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5 text-cyan-400" />{mode === "live" ? "Télémétrie temps réel" : "Télémétrie du replay"}</span>
             {isLoadingTrack ? (
               <div className="flex flex-col items-center justify-center py-8 gap-3"><RefreshCw className="w-6 h-6 animate-spin text-cyan-400" /></div>
@@ -599,7 +599,7 @@ export default function LiveTrackDashboard() {
             )}
           </div>
 
-          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3">
+          <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3 shrink-0 w-64 md:w-auto">
             <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-cyan-400" />Progression</span>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between text-xs"><span className="text-slate-400">Distance</span><span className="font-mono font-medium text-slate-200">{distance.toFixed(2)} km</span></div>
