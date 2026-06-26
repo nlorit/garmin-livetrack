@@ -594,28 +594,6 @@ export default function LiveTrackDashboard() {
           </div>
         </div>
 
-        {/* Mode Selector */}
-        <div className="flex bg-white/[0.03] border border-white/[0.06] rounded-xl p-0.5 shrink-0">
-          <button 
-            onClick={() => handleModeChange("live")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
-              mode === "live" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Radio className="w-3 h-3" />
-            <span className="hidden xs:inline">Direct</span>
-          </button>
-          <button 
-            onClick={() => handleModeChange("history")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
-              mode === "history" ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-400" : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Calendar className="w-3 h-3" />
-            <span className="hidden xs:inline">Replay</span>
-          </button>
-        </div>
-
         {/* User Search Form */}
         <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center bg-white/[0.03] border border-white/[0.08] rounded-xl px-2.5 py-1.5 gap-2 max-w-xs w-48 focus-within:w-60 transition-all duration-300">
           <User className="w-3.5 h-3.5 text-slate-400" />
