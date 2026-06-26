@@ -83,6 +83,19 @@ export default function LiveTrackDashboard() {
   const [elapsedTime, setElapsedTime] = useState<number>(0); 
   const [peakSpeed, setPeakSpeed] = useState<number>(0);
 
+  const clearTelemetryState = () => {
+    setTrackPoints([]);
+    setCurrentIndex(0);
+    setSpeed(0);
+    setPeakSpeed(0);
+    setHeartRate(0);
+    setPower(0);
+    setCadence(0);
+    setDistance(0);
+    setElevation(0);
+    setElapsedTime(0);
+  };
+
   const animFrameRef = useRef<number | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const cameraBearingRef = useRef<number>(15);
@@ -250,6 +263,7 @@ export default function LiveTrackDashboard() {
       if (data.profile) setProfile(data.profile);
 
       if (hasLiveActivityStarted) {
+        clearTelemetryState();
         setMode("live");
         setSelectedSession(active[0]);
         setInfoMsg("Une activité en direct vient de démarrer ! Mode direct activé.");
@@ -490,6 +504,7 @@ export default function LiveTrackDashboard() {
     if (!currentSession) return;
 
     if (newMode === "live") {
+      clearTelemetryState();
       await fetchTrackData(true, "live", currentSession);
     } else {
       await fetchTrackData(true, "history", currentSession);
@@ -549,6 +564,7 @@ export default function LiveTrackDashboard() {
           {mode !== "live" && (
             <button
               onClick={() => {
+                clearTelemetryState();
                 setMode("live");
                 setSelectedSession(activeSessions[0]);
                 fetchTrackData(true, "live", activeSessions[0]);
