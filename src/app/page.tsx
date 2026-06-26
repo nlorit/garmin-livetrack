@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl";
 import { 
   Play, Pause, RotateCcw, MapPin, Compass, Navigation,
   Heart, Zap, Flame, Award, Crosshair, Activity, Info,
-  Search, RefreshCw, User, Calendar, Radio, ChevronLeft, ChevronRight, Menu
+  Search, RefreshCw, User, Calendar, Radio, ChevronLeft, ChevronRight, Menu, Footprints
 } from "lucide-react";
 
 interface TrackPoint {
@@ -98,6 +98,14 @@ export default function LiveTrackDashboard() {
     const m = Math.floor((secs % 3600) / 60);
     const s = secs % 60;
     return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const formatPace = (speedKmH: number) => {
+    if (!speedKmH || speedKmH < 0.5) return "--:--";
+    const totalMinutes = 60 / speedKmH;
+    const mins = Math.floor(totalMinutes);
+    const secs = Math.floor((totalMinutes - mins) * 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const fetchTrackData = async (fitMapBounds: boolean = false, forcedMode?: "live" | "history", targetSession?: CompletedSession | null) => {
@@ -682,7 +690,7 @@ export default function LiveTrackDashboard() {
                     stroke="url(#speed-gradient)" 
                     strokeWidth="6" 
                     strokeDasharray="377" 
-                    strokeDashoffset={377 - (377 * Math.min(speed, 65)) / 65} 
+                    strokeDashoffset={377 - (377 * Math.min(speed, 25)) / 25} 
                     strokeLinecap="round" 
                     className="transition-all duration-500 ease-out" 
                   />
@@ -693,10 +701,10 @@ export default function LiveTrackDashboard() {
                     </linearGradient>
                   </defs>
                 </svg>
-                {/* Speed readout */}
+                {/* Speed readout converted to Pace */}
                 <div className="absolute flex flex-col items-center justify-center">
-                  <span className="font-mono text-4xl font-bold tracking-tight text-slate-100 tabular-nums">{speed.toFixed(1)}</span>
-                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Speed km/h</span>
+                  <span className="font-mono text-3xl font-bold tracking-tight text-slate-100 tabular-nums">{formatPace(speed)}</span>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Allure /km</span>
                 </div>
               </div>
             )}
@@ -724,35 +732,38 @@ export default function LiveTrackDashboard() {
                 </div>
               </div>
 
-              {/* Power Card with glowing neon gauge */}
+              {/* Altitude Card */}
               <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl">
                 <span className="text-[9px] uppercase text-slate-500 font-bold tracking-wider flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-yellow-500 fill-current" />
-                  Puissance
+                  <Award className="w-3.5 h-3.5 text-yellow-500 fill-current" />
+                  Altitude
                 </span>
-                <span className="font-mono text-xl font-bold text-slate-200 mt-1 block tabular-nums">{power} <span className="text-[10px] font-normal text-slate-500">W</span></span>
-                {/* Glowing power bar */}
+                <span className="font-mono text-xl font-bold text-slate-200 mt-1 block tabular-nums">{elevation.toFixed(0)} <span className="text-[10px] font-normal text-slate-500">m</span></span>
+                {/* Elevation bar */}
                 <div className="w-full h-1 bg-white/[0.04] rounded-full overflow-hidden mt-2">
-                  <div className="h-full bg-gradient-to-r from-yellow-500 to-amber-400 transition-all duration-500 ease-out" style={{ width: `${Math.min((power / 400) * 100, 100)}%` }} />
+                  <div className="h-full bg-gradient-to-r from-yellow-500 to-amber-400 transition-all duration-500 ease-out" style={{ width: `${Math.min((elevation / 1000) * 100, 100)}%` }} />
                 </div>
               </div>
 
-              {/* Cadence Card with Dynamic rotating crank visual */}
+              {/* Running Cadence Card with Steps Per Minute (SPM) */}
               <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-[9px] uppercase text-slate-500 font-bold tracking-wider flex items-center gap-1.5">
-                    <Compass className="w-3.5 h-3.5 text-purple-500" />
-                    Cadence
+                    <Footprints className="w-3.5 h-3.5 text-purple-500" />
+                    Cadence running
                   </span>
-                  <span className="font-mono text-xl font-bold text-slate-200 mt-1 block tabular-nums">{cadence} <span className="text-[10px] font-normal text-slate-500">rpm</span></span>
+                  <span className="font-mono text-xl font-bold text-slate-200 mt-1 block tabular-nums">
+                    {cadence < 120 ? cadence * 2 : cadence} <span className="text-[10px] font-normal text-slate-500">spm</span>
+                  </span>
                 </div>
-                {/* Rotating pedal/crank dial */}
+                {/* Pulsing Footprints */}
                 <div className="w-10 h-10 rounded-full border border-white/[0.05] flex items-center justify-center bg-white/[0.01]">
-                  <svg className="w-6 h-6 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ animation: `spin ${60 / Math.max(cadence || 1, 12)}s linear infinite` }}>
-                    <circle cx="12" cy="12" r="9" strokeDasharray="3 3" className="opacity-40" />
-                    <line x1="12" y1="12" x2="12" y2="4" strokeLinecap="round" />
-                    <circle cx="12" cy="4" r="2" fill="currentColor" />
-                  </svg>
+                  <Footprints 
+                    className="w-5 h-5 text-purple-400" 
+                    style={{ 
+                      animation: `heartbeat ${60 / Math.max(cadence < 120 ? cadence * 2 : cadence, 80)}s infinite ease-in-out` 
+                    }} 
+                  />
                 </div>
               </div>
             </div>
