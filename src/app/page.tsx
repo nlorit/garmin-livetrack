@@ -228,9 +228,10 @@ export default function LiveTrackDashboard() {
         setSelectedSession(active[0]);
         fetchTrackData(true, "live", active[0]);
       } else if (completed.length > 0) {
-        setMode("live"); // On démarre en mode écoute active pour intercepter la sortie du jour
+        setMode("history"); // Default to history mode if no live activity
         setSelectedSession(completed[0]);
-        fetchTrackData(true, "live", completed[0]);
+        fetchTrackData(true, "history", completed[0]);
+        setIsPlaying(true); // Automatically start playback of the last activity
       } else {
         setMode("history");
         setSelectedSession(null);
