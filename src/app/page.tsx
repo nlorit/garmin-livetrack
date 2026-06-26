@@ -267,6 +267,7 @@ export default function LiveTrackDashboard() {
         clearTelemetryState();
         setMode("live");
         setSelectedSession(active[0]);
+        fetchTrackData(true, "live", active[0]);
         setInfoMsg("Une activité en direct vient de démarrer ! Mode direct activé.");
         setTimeout(() => setInfoMsg(null), 8000);
       } else if (isLiveActivityStopped) {
