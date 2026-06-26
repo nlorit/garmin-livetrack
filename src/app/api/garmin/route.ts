@@ -224,10 +224,24 @@ export async function GET(request: NextRequest) {
           }
         }
       }
+      // Extract active session if Garmin redirects client-side via Next.js routing or meta tags
+      if (activeSessions.length === 0) {
+        const nextRedirectMatch = html.match(/NEXT_REDIRECT;replace;\/session\/([A-Za-z0-9-]+)\/token\/([A-Za-z0-9]+)/);
+        const metaRedirectMatch = html.match(/__next-page-redirect.*url=\/session\/([A-Za-z0-9-]+)\/token\/([A-Za-z0-9]+)/);
+        const redirectMatch = nextRedirectMatch || metaRedirectMatch;
 
-
-
-      // Fallback profile if query parsing failed
+        if (redirectMatch) {
+          activeSessions.push({
+            sessionId: redirectMatch[1],
+            token: redirectMatch[2],
+            name: "Active Session",
+            startDate: new Date().toISOString(),
+            distance: 0,
+            duration: "00:00:00",
+            maxElevation: 0,
+          });
+        }
+      }      // Fallback profile if query parsing failed
       if (!profile) {
         profile = {
           name: username,
