@@ -284,7 +284,6 @@ export default function LiveTrackDashboard() {
       if (!res.ok) return;
       const data = await res.json();
       const active = data.activeSessions || [];
-      const completed = data.completedSessions || [];
 
       // Check if a live activity has started
       const hasLiveActivityStarted = active.length > 0 && activeSessions.length === 0;
@@ -294,7 +293,6 @@ export default function LiveTrackDashboard() {
       const isLiveActivityStopped = active.length === 0 && wasLiveActivityRunning;
 
       setActiveSessions(active);
-      setCompletedSessions(completed);
       if (data.profile) setProfile(data.profile);
 
       if (hasLiveActivityStarted) {
