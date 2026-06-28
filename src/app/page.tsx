@@ -30,6 +30,7 @@ interface CompletedSession {
   distance: number;
   duration: string;
   maxElevation: number;
+  location?: string;
 }
 
 interface UserProfile {
@@ -709,6 +710,12 @@ export default function LiveTrackDashboard() {
                         <span>•</span>
                         <span>{session.startDate ? new Date(session.startDate).toLocaleDateString() : ""}</span>
                       </div>
+                      {session.location && (
+                        <div className="text-[8px] text-slate-400 mt-1 flex items-center gap-1 truncate w-full">
+                          <span>📍</span>
+                          <span className="truncate">{session.location}</span>
+                        </div>
+                      )}
                     </button>
                   );
                 })}

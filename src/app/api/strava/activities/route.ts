@@ -106,6 +106,15 @@ export async function GET(request: NextRequest) {
         const seconds = act.moving_time % 60;
         const durationStr = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
+        // Retrieve location components if available
+        let loc = "";
+        if (act.location_city) {
+          loc = act.act_location_city || act.location_city;
+          if (act.location_state) loc += `, ${act.location_state}`;
+        } else if (act.location_country) {
+          loc = act.location_country;
+        }
+
         return {
           sessionId: act.id.toString(),
           token: "strava",
@@ -114,6 +123,7 @@ export async function GET(request: NextRequest) {
           distance: act.distance / 1000,
           duration: durationStr,
           maxElevation: act.total_elevation_gain || 0,
+          location: loc || undefined,
         };
       });
 
