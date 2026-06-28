@@ -75,6 +75,7 @@ export default function LiveTrackDashboard() {
   const [isDroneMode, setIsDroneMode] = useState<boolean>(true);
   
   const [speed, setSpeed] = useState<number>(0); 
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [heartRate, setHeartRate] = useState<number>(0); 
   const [power, setPower] = useState<number>(0); 
   const [cadence, setCadence] = useState<number>(0); 
@@ -440,7 +441,7 @@ export default function LiveTrackDashboard() {
     let accumulatedTime = currentIndex;
 
     const loop = (now: number) => {
-      const delta = (now - lastTime) / 1000;
+      const delta = ((now - lastTime) / 1000) * playbackSpeed;
       lastTime = now;
       accumulatedTime = (accumulatedTime + delta) % trackPoints.length;
       
@@ -506,7 +507,7 @@ export default function LiveTrackDashboard() {
 
     animFrameRef.current = requestAnimationFrame(loop);
     return () => { if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current); };
-  }, [mode, isPlaying, trackPoints, isDroneMode, power]);
+  }, [mode, isPlaying, trackPoints, isDroneMode, power, playbackSpeed]);
 
   const handleReset = () => {
     setCurrentIndex(0); setElapsedTime(0); setCalories(0);
@@ -880,6 +881,16 @@ export default function LiveTrackDashboard() {
               className="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-white/[0.05] text-slate-300 hover:text-white transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => {
+                const nextSpeed = playbackSpeed === 1 ? 2 : playbackSpeed === 2 ? 5 : playbackSpeed === 5 ? 10 : 1;
+                setPlaybackSpeed(nextSpeed);
+              }}
+              disabled={trackPoints.length === 0}
+              className="flex items-center justify-center h-9 px-2 rounded-xl hover:bg-white/[0.05] text-[10px] font-mono font-bold text-slate-300 hover:text-white transition-colors shrink-0"
+            >
+              {playbackSpeed}x
             </button>
           </div>
         ) : (
