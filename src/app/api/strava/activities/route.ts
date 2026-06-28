@@ -114,19 +114,33 @@ export async function GET(request: NextRequest) {
       }
 
       const activities = await res.json();
-      const completedSessions = activities.map((act: any) => {
+      const completedSessions = await Promise.all(activities.map(async (act: any) => {
         const hours = Math.floor(act.moving_time / 3600);
         const minutes = Math.floor((act.moving_time % 3600) / 60);
         const seconds = act.moving_time % 60;
         const durationStr = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-        // Retrieve location components if available
+        // Resolve coordinates to City/State location
         let loc = "";
-        if (act.location_city) {
-          loc = act.act_location_city || act.location_city;
-          if (act.location_state) loc += `, ${act.location_state}`;
-        } else if (act.location_country) {
-          loc = act.location_country;
+        if (act.start_latlng && act.start_latlng.length === 2) {
+          const [lat, lon] = act.start_latlng;
+          try {
+            const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=fr`, {
+              headers: { "User-Agent": "garmin-livetrack-app" }
+            });
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              const city = geoData.city || geoData.locality || geoData.village || "";
+              const state = geoData.principalSubdivision || "";
+              if (city) {
+                loc = state ? `${city}, ${state}` : city;
+              } else if (geoData.countryName) {
+                loc = geoData.countryName;
+              }
+            }
+          } catch (err) {
+            console.error("Reverse geocoding error:", err);
+          }
         }
 
         return {
@@ -139,7 +153,7 @@ export async function GET(request: NextRequest) {
           maxElevation: act.total_elevation_gain || 0,
           location: loc || undefined,
         };
-      });
+      }));
 
       const responseObj = jsonResponse({
         authenticated: true,
