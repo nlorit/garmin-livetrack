@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAccessToken, getTokens } from "../token-store";
+import { getAccessTokenFromRequest } from "../token-store";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,14 +15,26 @@ function jsonResponse(data: any, status: number = 200) {
   return NextResponse.json(data, { status, headers: corsHeaders });
 }
 
+function attachCookiesToResponse(res: NextResponse, newTokens: any) {
+  if (newTokens) {
+    const maxAge = 365 * 24 * 60 * 60; // 1 year
+    res.cookies.set("strava_access_token", newTokens.accessToken, { maxAge, path: "/", httpOnly: true, secure: true, sameSite: "lax" });
+    res.cookies.set("strava_refresh_token", newTokens.refreshToken, { maxAge, path: "/", httpOnly: true, secure: true, sameSite: "lax" });
+    res.cookies.set("strava_expires_at", newTokens.expiresAt.toString(), { maxAge, path: "/", httpOnly: true, secure: true, sameSite: "lax" });
+  }
+  return res;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const activityId = searchParams.get("activityId");
 
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
+  const tokenData = await getAccessTokenFromRequest(request);
+  if (!tokenData) {
     return jsonResponse({ authenticated: false, error: "Strava not connected. Please login first." }, 401);
   }
+
+  const { accessToken, newTokens } = tokenData;
 
   const headers = {
     "Authorization": `Bearer ${accessToken}`,
@@ -71,7 +83,7 @@ export async function GET(request: NextRequest) {
           lon: ll[1],
           speed: speedKmH,
           elevation: altitudes[idx] ?? activity.elev_low ?? 0,
-          heartRate: heartrates[idx] ?? 130, // fallback average HR is handled by UI
+          heartRate: heartrates[idx] ?? 130,
           cadence: cadences[idx] ?? 85,
           power: 0,
           distance: (distances[idx] || 0) / 1000,
@@ -79,7 +91,7 @@ export async function GET(request: NextRequest) {
         };
       });
 
-      return jsonResponse({
+      const responseObj = jsonResponse({
         sessionInfo: {
           sessionId: activity.id.toString(),
           token: "strava",
@@ -91,6 +103,8 @@ export async function GET(request: NextRequest) {
         },
         trackPoints,
       });
+
+      return attachCookiesToResponse(responseObj, newTokens);
 
     } else {
       // 📋 FETCH RECENT ACTIVITIES LIST
@@ -127,10 +141,12 @@ export async function GET(request: NextRequest) {
         };
       });
 
-      return jsonResponse({
+      const responseObj = jsonResponse({
         authenticated: true,
         completedSessions,
       });
+
+      return attachCookiesToResponse(responseObj, newTokens);
     }
   } catch (e: any) {
     console.error("Strava API fetch error:", e);

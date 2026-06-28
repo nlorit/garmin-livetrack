@@ -42,14 +42,17 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    saveTokens({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      expires_at: data.expires_at,
-    });
+    
+    const redirectUrl = `${rootUrl}?info=${encodeURIComponent("Strava connecté avec succès !")}`;
+    const response = NextResponse.redirect(redirectUrl);
 
-    // Authentication successful, redirect back to dashboard
-    return NextResponse.redirect(`${rootUrl}?info=${encodeURIComponent("Strava connecté avec succès !")}`);
+    // Save tokens inside secure HTTP-only cookies for 1 year
+    const maxAge = 365 * 24 * 60 * 60;
+    response.cookies.set("strava_access_token", data.access_token, { maxAge, path: "/", httpOnly: true, secure: true, sameSite: "lax" });
+    response.cookies.set("strava_refresh_token", data.refresh_token, { maxAge, path: "/", httpOnly: true, secure: true, sameSite: "lax" });
+    response.cookies.set("strava_expires_at", data.expires_at.toString(), { maxAge, path: "/", httpOnly: true, secure: true, sameSite: "lax" });
+
+    return response;
   } catch (e: any) {
     console.error("Strava Token Exchange failed:", e);
     return NextResponse.redirect(`${rootUrl}?error=${encodeURIComponent("Failed to exchange tokens: " + e.message)}`);
