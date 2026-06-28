@@ -6,3 +6,6 @@ services:
     restart: always
     environment:
       - NODE_ENV=production
+      - STRAVA_CLIENT_ID=your_strava_client_id
+      - STRAVA_CLIENT_SECRET=your_strava_client_secret
+      - STRAVA_REDIRECT_URI=https://garmin.nathan-lorit.com/api/strava/callback

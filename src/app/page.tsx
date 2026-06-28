@@ -48,6 +48,7 @@ export default function LiveTrackDashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeSessions, setActiveSessions] = useState<CompletedSession[]>([]);
   const [completedSessions, setCompletedSessions] = useState<CompletedSession[]>([]);
+  const [isStravaAuthenticated, setIsStravaAuthenticated] = useState<boolean>(true);
   const [selectedSession, setSelectedSession] = useState<CompletedSession | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(false);
   const [isLoadingTrack, setIsLoadingTrack] = useState<boolean>(false);
@@ -129,14 +130,20 @@ export default function LiveTrackDashboard() {
     const targetSessionId = activeSession.sessionId;
     const targetToken = activeSession.token || activeSession.sessionToken;
 
-    if (!targetSessionId || !targetToken) return;
+    if (!targetSessionId) return;
 
     if (targetSession !== undefined || trackPoints.length === 0) {
       setIsLoadingTrack(true);
     }
     const currentMode = forcedMode || mode;
     try {
-      const res = await fetch(`/api/garmin?sessionId=${targetSessionId}&token=${targetToken}&mode=${currentMode}`);
+      let res;
+      if (targetToken === "strava") {
+        res = await fetch(`/api/strava/activities?activityId=${targetSessionId}`);
+      } else {
+        if (!targetToken) return;
+        res = await fetch(`/api/garmin?sessionId=${targetSessionId}&token=${targetToken}&mode=${currentMode}`);
+      }
       if (!res.ok) throw new Error("Failed to load track points.");
       const data = await res.json();
       const points: TrackPoint[] = data.trackPoints || [];
@@ -223,26 +230,40 @@ export default function LiveTrackDashboard() {
     setIsLoadingProfile(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`/api/garmin?username=${targetUser}`);
-      if (!res.ok) throw new Error("Failed to load user profile.");
-      const data = await res.json();
-      setProfile(data.profile);
-      const active = data.activeSessions || [];
-      const completed = data.completedSessions || [];
-      
+      // 1. Fetch Garmin profile and active sessions
+      const garminRes = await fetch(`/api/garmin?username=${targetUser}`);
+      if (!garminRes.ok) throw new Error("Failed to load user profile.");
+      const garminData = await garminRes.json();
+      setProfile(garminData.profile);
+      const active = garminData.activeSessions || [];
       setActiveSessions(active);
+
+      // 2. Fetch Strava activities
+      let completed: CompletedSession[] = [];
+      try {
+        const stravaRes = await fetch("/api/strava/activities");
+        if (stravaRes.ok) {
+          const stravaData = await stravaRes.json();
+          completed = stravaData.completedSessions || [];
+          setIsStravaAuthenticated(true);
+        } else if (stravaRes.status === 401) {
+          setIsStravaAuthenticated(false);
+        }
+      } catch (stravaErr) {
+        console.error("Failed to fetch Strava activities:", stravaErr);
+        setIsStravaAuthenticated(false);
+      }
       setCompletedSessions(completed);
       
-      // ✅ LOGIQUE FORCÉE : S'il y a du contenu (Live ou Historique), on initialise l'écoute immédiate en mode Live
       if (active.length > 0) {
         setMode("live");
         setSelectedSession(active[0]);
         fetchTrackData(true, "live", active[0]);
       } else if (completed.length > 0) {
-        setMode("history"); // Default to history mode if no live activity
+        setMode("history");
         setSelectedSession(completed[0]);
         fetchTrackData(true, "history", completed[0]);
-        setIsPlaying(true); // Automatically start playback of the last activity
+        setIsPlaying(true);
       } else {
         setMode("history");
         setSelectedSession(null);
@@ -286,13 +307,8 @@ export default function LiveTrackDashboard() {
         setInfoMsg("L'activité en direct s'est terminée. Replay de la session disponible dans l'historique.");
         setTimeout(() => setInfoMsg(null), 8000);
         
-        // Auto-switch to the completed version of the active session
-        const matchingCompleted = completed.find((s: any) => s.sessionId === selectedSession?.sessionId);
-        if (matchingCompleted) {
-          setSelectedSession(matchingCompleted);
-        } else if (completed.length > 0) {
-          setSelectedSession(completed[0]);
-        }
+        // Refresh completed sessions from Strava to include the newly completed run!
+        fetchProfileAndSessions(targetUser);
       }
     } catch (err) {
       console.error("Background profile check failed:", err);
@@ -662,10 +678,20 @@ export default function LiveTrackDashboard() {
           {/* History sessions list */}
           <div className="flex-1 flex flex-col min-h-0">
             <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500 flex items-center gap-1.5 mb-2 shrink-0"><Calendar className="w-3.5 h-3.5 text-cyan-400" />Activités récentes</span>
-            {isLoadingProfile ? (
+            {!isStravaAuthenticated ? (
+              <div className="flex flex-col items-center justify-center p-3.5 bg-orange-500/5 border border-orange-500/15 rounded-xl gap-2 mt-1">
+                <span className="text-[9px] text-slate-400 text-center leading-normal">Connectez votre Strava pour synchroniser l'historique.</span>
+                <a 
+                  href="/api/strava/auth" 
+                  className="w-full text-center bg-orange-600 hover:bg-orange-500 text-white text-[9px] font-bold py-1.5 px-3 rounded-lg transition-colors uppercase shadow-sm"
+                >
+                  Se connecter à Strava
+                </a>
+              </div>
+            ) : isLoadingProfile ? (
               <div className="text-xs text-slate-400 flex items-center gap-2 py-4"><RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" /><span>Chargement de l'historique...</span></div>
             ) : completedSessions.length === 0 ? (
-              <div className="text-[10px] text-slate-500 italic px-2">Aucun historique disponible.</div>
+              <div className="text-[10px] text-slate-500 italic px-2">Aucune activité Strava trouvée.</div>
             ) : (
               <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-1.5">
                 {completedSessions.map((session) => {
